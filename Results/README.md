@@ -5,9 +5,9 @@
 
 ### The visualization report contains: 
 
-- ** Precursor Counts ** 
-- ** Precursor Abundance ( Observed vs Expected ) **
-- ** Coefficient of Variation **
-- ** Difference in distribution of Retention Time **
-- ** Difference in Distribution of Ion Mobility **
-- ** Difference of Precursors based on Correlation **
+- **Precursor Counts** 
+- **Precursor Abundance ( Observed vs Expected )**
+- **Coefficient of Variation**
+- **Difference in distribution of Retention Time**
+- **Difference in Distribution of Ion Mobility**
+- **Difference of Precursors based on Correlation**
