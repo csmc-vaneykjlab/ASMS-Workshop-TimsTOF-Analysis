@@ -1,0 +1,414 @@
+---
+title: "Paser data analysis with big library"
+
+output:
+  html_document:
+    anchor_sections: false
+    toc: true
+    toc_depth: 3
+    toc_float:
+      collapsed: false
+    fig_width: 11
+    fig_height: 7
+    code_folding: "hide"
+    theme: united
+toc-title: "Table of Contents"
+---
+
+```{r setup, include=FALSE}
+suppressPackageStartupMessages({
+  #library(optparse)
+  library(dplyr)
+  library(tidyverse)
+  library(tibble)
+  library(ggplot2)
+  library(RColorBrewer)
+})
+```
+
+```{r set-parameters, echo=F, results='asis', fig.keep='all', message=FALSE, warning=FALSE}
+paser_results_big <- "C:\\Users\\BhatA\\Box\\ASMS\\paser_big_lib.tsv"
+
+paser_big_corr <- "C:\\Users\\BhatA\\Box\\ASMS\\sample_matrix_big_20on20_withCorr.tsv"
+```
+
+```{r read-input - small lib, echo=F, results='asis', fig.keep='all', message=FALSE, warning=FALSE}
+sample_matrix_big <- read.delim(paser_results_big)
+
+sample_matrix_big_copy <- sample_matrix_big
+
+#sample_matrix_small <- filter(sample_matrix_small, Identified.By != "MBR")
+
+sample_matrix_big$Protein <- paste(sample_matrix_big$Protein.Ids,sample_matrix_big$Precursor.Id,sep= "-")
+
+sample_matrix_big <- sample_matrix_big[(colnames(sample_matrix_big) %in% c("Protein", "Precursor.Quantity","File.Name", "RT", "Exp.1.K0"))] 
+
+sample_matrix_big$Category = str_split_fixed(sample_matrix_big$File.Name, '_', 6)[,5]
+
+sample_matrix_big <- filter(sample_matrix_big, Category %in% c("A", "B", "C", "D"))
+
+write.table(sample_matrix_big, file = "sample_matrix_big_noE.tsv", sep="\t", row.names=F, quote=F) # export to file
+
+
+#sample_matrix_5on5 <- sample_matrix_small %>% group_by(Category, Protein) %>%
+#  summarise(Precursor.Quantity = n())
+
+#sample_matrix_5on5 <- filter(sample_matrix_5on5, Precursor.Quantity == 5)
+
+#sample_matrix_small_filt_5on5 <- filter(sample_matrix_small,Protein %in% sample_matrix_5on5$Protein)
+
+sample_matrix_big_cv <- sample_matrix_big %>% 
+    group_by(Category,Protein) %>%
+    summarise(StdDev = sd(Precursor.Quantity), Avg = mean(Precursor.Quantity), CV = (StdDev/Avg)*100)
+
+# CV filter
+sample_matrix_big_cv_filt <- filter(sample_matrix_big_cv, CV > 20)
+
+# sample_matrix_small_20on20 is list with prec < CV 20
+sample_matrix_big_20on20 <- filter(sample_matrix_big,!Protein %in% sample_matrix_big_cv_filt$Protein)
+
+sample_matrix_big_20on20 <- sample_matrix_big_20on20 %>%
+  group_by(Protein) %>%   
+  summarise(Precursor.Quantity = n())
+
+sample_matrix_big_20on20 <- filter(sample_matrix_big_20on20, Precursor.Quantity == 20)
+
+sample_matrix_big_20on20_final <- filter(sample_matrix_big,Protein %in% sample_matrix_big_20on20$Protein)
+
+write.table(sample_matrix_big_20on20_final, file = "sample_matrix_big_20on20_filtCV.tsv", sep="\t", row.names=F, quote=F) # export to file
+
+```
+
+## Precursor counts {.tabset}
+```{r count-precursors, echo=F, results='asis', fig.keep='all', message=FALSE, warning=FALSE}
+# All data
+summarize_precursor <- sample_matrix_big %>% group_by(Category) %>% summarise(Count = n_distinct(Protein))
+
+# Filtered
+summarize_precursor_filt <- sample_matrix_big_20on20_final %>% group_by(Category) %>% summarise(Count = n_distinct(Protein))
+
+col_bar <- brewer.pal(4, "Blues") 
+
+```
+
+### Before filtering
+```{r bar plot before filt, echo=F, results='asis', fig.keep='all', message=FALSE, warning=FALSE}
+
+ggplot(data=summarize_precursor, aes(x=Count, y=Category, fill=Category)) +
+  geom_bar(stat="identity") + 
+  scale_fill_brewer(palette="Blues") + 
+  labs(x = "Precursor Count",
+      y = "Category") + 
+  ggtitle("Precursor Count per Category") + 
+  theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+### After filtering
+```{r bar plot after filt, echo=F, results='asis', fig.keep='all', message=FALSE, warning=FALSE}
+
+ggplot(data=summarize_precursor_filt, aes(x=Count, y=Category, fill=Category)) +
+  geom_bar(stat="identity") + 
+  scale_fill_brewer(palette="Blues") + 
+  labs(x = "Precursor Count",
+      y = "Category") +
+  ggtitle("Precursor Count per Category") + 
+  theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+## Precursor abundance (observed vs expected) {.tabset}
+```{r precursor abundance, echo=F, results='asis', fig.keep='all', message=FALSE, warning=FALSE}
+# All data
+median_grp_precursor = sample_matrix_big %>% group_by(Category, Protein) %>% summarise(Precursor.Quantity = median(Precursor.Quantity))
+
+median_grp = median_grp_precursor %>% group_by(Category) %>%  summarise(Precursor.Quantity = median(Precursor.Quantity))
+
+mean_grp = median_grp_precursor %>% group_by(Category) %>%  summarise(Precursor.Quantity = mean(Precursor.Quantity))
+
+median_grp$median_percentage = (median_grp$Precursor.Quantity/median_grp$Precursor.Quantity[[1]]) * 100
+median_grp$mean_percentage = (mean_grp$Precursor.Quantity/mean_grp$Precursor.Quantity[[1]]) * 100
+#median_grp = head(median_grp, -1)
+median_grp = median_grp[order(median_grp$Category, decreasing = TRUE),]
+median_grp$expected = c(5, 10, 50, 100)
+median_grp$scale = c(5, 10, 50, 100)
+
+# Filtered
+median_grp_precursor_filt = sample_matrix_big_20on20_final %>% group_by(Category, Protein) %>% summarise(Precursor.Quantity = median(Precursor.Quantity))
+
+median_grp_filt = median_grp_precursor_filt %>% group_by(Category) %>%  summarise(Precursor.Quantity = median(Precursor.Quantity))
+
+mean_grp_filt = median_grp_precursor_filt %>% group_by(Category) %>%  summarise(Precursor.Quantity = mean(Precursor.Quantity))
+
+median_grp_filt$median_percentage = (median_grp_filt$Precursor.Quantity/median_grp_filt$Precursor.Quantity[[1]]) * 100
+median_grp_filt$mean_percentage = (mean_grp_filt$Precursor.Quantity/mean_grp_filt$Precursor.Quantity[[1]]) * 100
+median_grp_filt = median_grp_filt[order(median_grp_filt$Category, decreasing = TRUE),]
+median_grp_filt$expected = c(5, 10, 50, 100)
+median_grp_filt$scale = c(5, 10, 50, 100)
+```
+
+### Before filtering
+```{r line graph before, echo=F, results='asis', fig.keep='all', message=FALSE, warning=FALSE}
+# All data
+colors <- c("Expected" = "black", "Median %" = "red", "Mean %" = "steelblue")
+
+ggplot(median_grp, aes(scale)) +
+  scale_color_manual(values = colors) +
+  geom_line(aes(y = expected, color = "Expected")) +
+  geom_point(aes(y = expected, color = "Expected")) +
+  geom_line(aes(y = median_percentage, color = "Median %")) +
+  geom_point(aes(y = median_percentage, color = "Median %")) +
+  geom_line(aes(y = mean_percentage, color = "Mean %")) +
+  geom_point(aes(y = mean_percentage, color = "Mean %")) +
+  scale_x_discrete(limits=c(5,10,50,100)) +
+  expand_limits(x=0, y=0) +
+  #scale_x_continuous(limits=c(0,100)) +
+  scale_y_continuous(limits=c(0,100), breaks = scales::breaks_width(10)) +
+  labs(x = "Concentration",
+        y = "Precursor abundance (%)",
+        color = "Legend") + 
+  ggtitle("Precursor abundance across concentrations") +
+    theme(plot.title = element_text(hjust = 0.5))
+```
+
+### After filtering
+```{r line graph after, echo=F, results='asis', fig.keep='all', message=FALSE, warning=FALSE}
+# Filtered
+colors <- c("Expected" = "black", "Median %" = "red", "Mean %" = "steelblue")
+
+ggplot(median_grp_filt, aes(scale)) +
+  scale_color_manual(values = colors) +
+  geom_line(aes(y = expected, color = "Expected")) +
+  geom_point(aes(y = expected, color = "Expected")) +
+  geom_line(aes(y = median_percentage, color = "Median %")) +
+  geom_point(aes(y = median_percentage, color = "Median %")) +
+  geom_line(aes(y = mean_percentage, color = "Mean %")) +
+  geom_point(aes(y = mean_percentage, color = "Mean %")) +
+  scale_x_discrete(limits=c(5,10,50,100)) +
+  expand_limits(x=0, y=0) +
+  #scale_x_continuous(limits=c(0,100)) +
+  scale_y_continuous(limits=c(0,100), breaks = scales::breaks_width(10)) +
+  labs(x = "Concentration",
+        y = "Precursor abundance (%)",
+        color = "Legend") + 
+  ggtitle("Precursor abundance across concentrations") +
+    theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+## Coefficient of Variation {.tabset}
+```{r CV, echo=F, results='asis', fig.keep='all', message=FALSE, warning=FALSE}
+# All data
+cv_precursor <- sample_matrix_big %>% 
+    group_by(Category,Protein) %>%
+    summarise(StdDev = sd(Precursor.Quantity), Avg = mean(Precursor.Quantity), CV = StdDev/Avg*100)
+
+# Filtered
+cv_precursor_filt <- sample_matrix_big_20on20_final %>% 
+    group_by(Category,Protein) %>%
+    summarise(StdDev = sd(Precursor.Quantity), Avg = mean(Precursor.Quantity), CV = (StdDev/Avg)*100)
+```
+
+### Before filtering
+```{r before filt CV, echo=F, results='asis', fig.keep='all', message=FALSE, warning=FALSE}
+
+p <- ggplot(cv_precursor, aes(x=Category, y=CV, fill=Category)) +
+    geom_violin() + 
+    scale_fill_brewer(palette="Blues") + 
+    theme_classic() +
+    stat_summary(fun.data="mean_sdl", mult=1, 
+                 geom="pointrange", width=0.2 ) + 
+    ggtitle("CV % per Category") +
+    theme(plot.title = element_text(hjust = 0.5)) + 
+    scale_y_continuous(limits=c(0,200), breaks = scales::breaks_width(20)) 
+p
+
+```
+
+### After filtering
+```{r after filt CV, echo=F, results='asis', fig.keep='all', message=FALSE, warning=FALSE}
+
+p <- ggplot(cv_precursor_filt, aes(x=Category, y=CV, fill=Category)) +
+    geom_violin() + 
+    scale_fill_brewer(palette="Blues") + 
+    theme_classic() +
+    stat_summary(fun.data="mean_sdl", mult=1, 
+                 geom="pointrange", width=0.2 ) + 
+    ggtitle("CV % per Category") +
+    theme(plot.title = element_text(hjust = 0.5)) + 
+    scale_y_continuous(limits=c(0,200), breaks = scales::breaks_width(20)) 
+p
+
+```
+
+## Difference in distribution of Retention Time {.tabset}
+```{r RT, echo=F, results='asis', fig.keep='all', message=FALSE, warning=FALSE}
+# All data
+rt_precursor <- sample_matrix_big %>% 
+    group_by(Category,Protein) %>%
+    summarise(Median = median(RT))
+
+# Filtered
+rt_precursor_filt <- sample_matrix_big_20on20_final %>% 
+    group_by(Category,Protein) %>%
+    summarise(Median = median(RT))
+```
+
+### Before filtering
+```{r before filtering RT, echo=F, results='asis', fig.keep='all', message=FALSE, warning=FALSE}
+for (i in c("B", "C", "D")) {
+  sub_A <- filter(rt_precursor, Category == "A")
+  sub_i <- filter(rt_precursor, Category == i)
+  
+  merged_A_i <- merge(x = sub_A, y = sub_i, by = "Protein")
+  merged_A_i <- merged_A_i %>% mutate(diff_iA = Median.y-Median.x)
+  
+  p <- ggplot(merged_A_i, aes(diff_iA)) +
+  geom_histogram(binwidth = 0.01, color="steelblue", fill="steelblue") +
+  ggtitle(paste0("RT difference between ", i, " and A")) + 
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("") + 
+  ylab("Frequency") + 
+  xlim(-1.5, 1.5)
+  
+  print(p)
+}
+```
+
+### After filtering
+```{r after filetring RT, echo=F, results='asis', fig.keep='all', message=FALSE, warning=FALSE}
+for (i in c("B", "C", "D")) {
+  sub_A <- filter(rt_precursor_filt, Category == "A")
+  sub_i <- filter(rt_precursor_filt, Category == i)
+  
+  merged_A_i <- merge(x = sub_A, y = sub_i, by = "Protein")
+  merged_A_i <- merged_A_i %>% mutate(diff_iA = Median.y-Median.x)
+  
+  p <- ggplot(merged_A_i, aes(diff_iA)) +
+  geom_histogram(binwidth = 0.01, color="steelblue", fill="steelblue") +
+  ggtitle(paste0("RT difference between ", i, " and A")) + 
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("") + 
+  ylab("Frequency") + 
+  xlim(-1.5, 1.5)
+  
+  print(p)
+}
+
+```
+
+## Difference in distribution of Ion Mobility {.tabset}
+```{r IM, echo=F, results='asis', fig.keep='all', message=FALSE, warning=FALSE}
+#All data
+im_precursor <- sample_matrix_big %>% 
+    group_by(Category,Protein) %>%
+    summarise(Median = median(Exp.1.K0))
+
+# Filtered
+im_precursor_filt <- sample_matrix_big_20on20_final %>% 
+    group_by(Category,Protein) %>%
+    summarise(Median = median(Exp.1.K0))
+```
+
+### Before filtering
+```{r before filtering IM, echo=F, results='asis', fig.keep='all', message=FALSE, warning=FALSE}
+for (i in c("B", "C", "D")) {
+  sub_A <- filter(im_precursor, Category == "A")
+  sub_i <- filter(im_precursor, Category == i)
+  
+  merged_A_i <- merge(x = sub_A, y = sub_i, by = "Protein")
+  merged_A_i <- merged_A_i %>% mutate(diff_iA = Median.y-Median.x)
+  
+  p <- ggplot(merged_A_i, aes(diff_iA)) +
+  geom_histogram(binwidth = 0.0001, color="steelblue", fill="steelblue") +
+  ggtitle(paste0("IM difference between ", i, " and A")) + 
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("") + 
+  ylab("Frequency") + 
+  xlim(-0.5, 0.5)
+  
+  print(p)
+}
+```
+
+### After filtering
+```{r after filtering IM, echo=F, results='asis', fig.keep='all', message=FALSE, warning=FALSE}
+for (i in c("B", "C", "D")) {
+  sub_A <- filter(im_precursor_filt, Category == "A")
+  sub_i <- filter(im_precursor_filt, Category == i)
+  
+  merged_A_i <- merge(x = sub_A, y = sub_i, by = "Protein")
+  merged_A_i <- merged_A_i %>% mutate(diff_iA = Median.y-Median.x)
+  
+  p <- ggplot(merged_A_i, aes(diff_iA)) +
+  geom_histogram(binwidth = 0.0001, color="steelblue", fill="steelblue") +
+  ggtitle(paste0("IM difference between ", i, " and A")) + 
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("") + 
+  ylab("Frequency") + 
+  xlim(-0.5, 0.5)
+  
+  print(p)
+}
+
+```
+
+## Distribution of Precursors based on correlation {.tabset}
+```{r prec with good correlation, echo=F, results='asis', fig.keep='all', message=FALSE, warning=FALSE}
+
+paser_big_corr_file <- read.delim(paser_big_corr)
+
+# Subset to get good, bad and ugly precursors based on correlation
+paser_big_corr_good <- filter(paser_big_corr_file, Corr >= 0.9)
+paser_big_corr_bad <- filter(paser_big_corr_file, between(Corr, 0.5, 0.7))
+paser_big_corr_ugly <- filter(paser_big_corr_file, between(Corr, 0.0, 0.4))
+
+```
+
+### Good
+```{r Good, echo=F, results='asis', fig.keep='all', message=FALSE, warning=FALSE}
+
+ggplot(paser_big_corr_good, aes(x=Category, y=log2(Precursor.Quantity), fill=Category)) +
+  geom_boxplot() +
+  scale_fill_brewer(palette="Blues") +
+  theme(
+    legend.position="none",
+    plot.title = element_text(hjust = 0.5)
+  ) +
+  ggtitle("Distribution of Precursors across Concentrations - Good") +
+  labs(x = "Concentrations",
+      y = "Precursor abundance (log2)")
+
+```
+
+### Bad
+```{r prec with bad correlation, echo=F, results='asis', fig.keep='all', message=FALSE, warning=FALSE}
+
+ggplot(paser_big_corr_bad, aes(x=Category, y=log2(Precursor.Quantity), fill=Category)) +
+  geom_boxplot() +
+  scale_fill_brewer(palette="Blues") +
+  theme(
+    legend.position="none",
+    plot.title = element_text(hjust = 0.5)
+  ) +
+  ggtitle("Distribution of Precursors across Concentrations - Bad") +
+  labs(x = "Concentrations",
+      y = "Precursor abundance (log2)")
+
+```
+
+### Ugly
+```{r prec with ugly correlation, echo=F, results='asis', fig.keep='all', message=FALSE, warning=FALSE}
+
+ggplot(paser_big_corr_ugly, aes(x=Category, y=log2(Precursor.Quantity), fill=Category)) +
+  geom_boxplot() +
+  scale_fill_brewer(palette="Blues") +
+  theme(
+    legend.position="none",
+    plot.title = element_text(hjust = 0.5)
+  ) +
+  ggtitle("Distribution of Precursors across Concentrations - Ugly") +
+  labs(x = "Concentrations",
+      y = "Precursor abundance (log2)")
+
+```
