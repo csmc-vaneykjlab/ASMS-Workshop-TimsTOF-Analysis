@@ -14,9 +14,9 @@ Large library result file: **Hela_DIArun2_cleanLargeLibrary_nomralizationOFF_res
 ## Library Files: 
 The library files that was used for both the analysis can be downloaded from Panorama Web: https://panoramaweb.org/Instruction/2022%20ASMS%20Workshop/Bruker%20TimsTof%20data/project-begin.view?
 
-Small library File: **_ip2_ip2_data_paser_spectral_library__MacCoss_Hela_10XDDA_iRT_cleaned.tsv
+Small library File: **_ip2_ip2_data_paser_spectral_library__MacCoss_Hela_10XDDA_iRT_cleaned.tsv**
 
-Large library File: **_ip2_ip2_data_paser_spectral_library__Combined_BrukerHuman_MacossIRT_cleaned.tsv
+Large library File: **_ip2_ip2_data_paser_spectral_library__Combined_BrukerHuman_MacossIRT_cleaned.tsv**
 
 ## Requirements:
 All the data analysis and visualization were done using the R Programming Language (3.6.3 or above). 
