@@ -37,6 +37,18 @@ Packages required:
 
 Installing R packages: https://datatofish.com/install-package-r/ 
 
+##code block for installation of packages
+
+```r
+# Install devtools from CRAN
+install.packages("dplyr")
+install.packages("tidyverse")
+install.packages("ggplot2")
+install.packages("RColorBrewer")
+install.packages("Hmisc")
+
+```
+
 ## Set-up using GitHub Repository 
 
 **Step 1**: Download the zip file from this link: https://github.com/csmc-vaneykjlab/ASMS-Workshop-TimsTOF-Analysis
