@@ -33,4 +33,6 @@ Packages required:
 
 -RColorBrewer
 
+-Hmisc
+
 Installing R packages: https://datatofish.com/install-package-r/ 
