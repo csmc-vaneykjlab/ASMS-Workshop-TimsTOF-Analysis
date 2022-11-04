@@ -23,6 +23,7 @@ suppressPackageStartupMessages({
   library(tibble)
   library(ggplot2)
   library(RColorBrewer)
+  library(Hmisc)
 })
 ```
 
@@ -41,10 +42,10 @@ paser_small_corr <- "Enter the path of your downloaded correlation file"
 # RUN THIS SNIPPET OF CODE ONLY IF YOU'VE DOWNLOADED THE RDS FILES
 
 #small library results file
-sample_matrix_small <- readRDS('sample_matrix_small.rds')
+sample_matrix_small <- readRDS('../data/sample_matrix_small.rds')
 
 #results file subset with correlation
-paser_small_corr_file <- readRDS('paser_small_corr.rds')
+paser_small_corr_file <- readRDS('../data/paser_small_corr.rds')
 
 
 ```
@@ -81,7 +82,7 @@ sample_matrix_small$Category = str_split_fixed(sample_matrix_small$File.Name, '_
 sample_matrix_small <- filter(sample_matrix_small, Category %in% c("A", "B", "C", "D"))
 
 # Create a table with subset data, No MBR, No E. This is the file used to make plots under "All data".
-write.table(sample_matrix_small, file = "sample_matrix_small_noE.tsv", sep="\t", row.names=F, quote=F) # export to file
+#write.table(sample_matrix_small, file = "sample_matrix_small_noE.tsv", sep="\t", row.names=F, quote=F) # export to file
 
 #sample_matrix_5on5 <- sample_matrix_small %>% group_by(Category, Protein) %>%
 #  summarise(Precursor.Quantity = n())
