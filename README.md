@@ -36,3 +36,34 @@ Packages required:
 -Hmisc
 
 Installing R packages: https://datatofish.com/install-package-r/ 
+
+## Set-up using GitHub Repository 
+
+**Step 1**: Download the zip file from this link: https://github.com/csmc-vaneykjlab/ASMS-Workshop-TimsTOF-Analysis
+
+![image](https://user-images.githubusercontent.com/32958585/200050513-17744389-460c-49e1-9143-581f402e2afd.png)
+
+
+**Step 2**: Extract the zip file to the folder of your choice  right click on the downloaded file  extract all  choose location
+
+
+
+**Step 3**: 
+A.	Open R studio instance and go to the sessions tab to set working directory 
+![image](https://user-images.githubusercontent.com/32958585/200050547-aa92e9ad-cb9c-4538-bf3c-a031005836c1.png)
+
+
+B.	Choose the src folder under the extracted folder on step 2 :  
+
+![image](https://user-images.githubusercontent.com/32958585/200050579-19983f10-3352-4b03-baa5-114388526aa6.png)
+
+C.	On the files pane, on the right hand side. Double click the paser_data_analysis_small.Rmd to open 
+
+![image](https://user-images.githubusercontent.com/32958585/200050606-4b4d806e-440b-4355-9f67-703ceb6a8bf1.png)
+
+ 
+
+And then, follow along with the demo. 
+
+Thank you!
+
