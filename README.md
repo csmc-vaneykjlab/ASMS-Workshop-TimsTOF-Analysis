@@ -51,7 +51,7 @@ install.packages("Hmisc")
 
 ## Set-up using GitHub Repository 
 
-**Step 1**: Download the zip file from this link: https://github.com/csmc-vaneykjlab/ASMS-Workshop-TimsTOF-Analysis
+**Step 1**: Download the zip file from this link: https://github.com/csmc-vaneykjlab/ASMS-Workshop-TimsTOF-Analysis/archive/refs/heads/main.zip
 
 
 **Step 2**: Extract the zip file to the folder of your choice  right click on the downloaded file  extract all  choose location
