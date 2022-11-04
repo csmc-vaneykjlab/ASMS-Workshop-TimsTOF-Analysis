@@ -4,6 +4,16 @@
 ## Introduction
 This repository contains the code, results, libraries and metadata information with regards to **Effect on Library Size on Protein Identification and Quantification timsTOF (TimsTOF Pro) by TIMS-DIA-NN** Live demo. 
 
+
+## Zip file download:
+
+The Zip file can be downloaded using this link: https://github.com/csmc-vaneykjlab/ASMS-Workshop-TimsTOF-Analysis/archive/refs/heads/main.zip
+
+or by navigating to the code and downloading the zip file: 
+
+![image](https://user-images.githubusercontent.com/32958585/200057486-3b19320c-10ee-493e-bb4f-166e7fd8517e.png)
+
+
 ## Input Files: 
 The input files can be downloaded from Panorama Web: https://panoramaweb.org/Instruction/2022%20ASMS%20Workshop/Bruker%20TimsTof%20data/project-begin.view? 
 
@@ -51,7 +61,7 @@ install.packages("Hmisc")
 
 ## Set-up using GitHub Repository 
 
-**Step 1**: Download the zip file from this link: https://github.com/csmc-vaneykjlab/ASMS-Workshop-TimsTOF-Analysis
+**Step 1**: Download the zip file from this link: https://github.com/csmc-vaneykjlab/ASMS-Workshop-TimsTOF-Analysis/archive/refs/heads/main.zip
 
 
 **Step 2**: Extract the zip file to the folder of your choice  right click on the downloaded file  extract all  choose location
