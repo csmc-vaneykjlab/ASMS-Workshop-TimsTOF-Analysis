@@ -41,11 +41,10 @@ Installing R packages: https://datatofish.com/install-package-r/
 
 **Step 1**: Download the zip file from this link: https://github.com/csmc-vaneykjlab/ASMS-Workshop-TimsTOF-Analysis
 
-![image](https://user-images.githubusercontent.com/32958585/200050513-17744389-460c-49e1-9143-581f402e2afd.png)
-
 
 **Step 2**: Extract the zip file to the folder of your choice  right click on the downloaded file  extract all  choose location
 
+![image](https://user-images.githubusercontent.com/32958585/200050513-17744389-460c-49e1-9143-581f402e2afd.png)
 
 
 **Step 3**: 
