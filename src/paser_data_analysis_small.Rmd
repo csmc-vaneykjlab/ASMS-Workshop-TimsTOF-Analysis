@@ -172,9 +172,10 @@ ggplot(data=summarize_precursor_cv_filt, aes(x=Count, y=Category, fill=Category)
 
 ```
 
-#slide 11 - CV calculations  
+
 ## Coefficient of Variation {.tabset}
 ```{r CV, echo=F, results='asis', fig.keep='all', message=FALSE, warning=FALSE}
+#slide 11 - CV calculations  
 # All data
 cv_precursor <- sample_matrix_small %>% 
     group_by(Category,Protein) %>%
@@ -240,10 +241,11 @@ p
 
 ```
 
-# slide 12 Precursor Abundance
+
 
 ## Precursor Abundance (Observed vs Expected) {.tabset}
 ```{r precursor abundance, echo=F, results='asis', fig.keep='all', message=FALSE, warning=FALSE}
+# slide 12 Precursor Abundance
 # All data
 median_grp_precursor = sample_matrix_small %>% group_by(Category, Protein) %>% summarise(Precursor.Quantity = median(Precursor.Quantity))
 
